@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="KushSavvy - Identify cannabis products instantly by taking a photo">
+    <meta name="theme-color" content="#10b981">
+    <title>KushSavvy - Cannabis Product Identifier</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" href="icon.png">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">🌿 KushSavvy</h1>
+            <p class="tagline">Shazam for Cannabis Products</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Home Screen -->
+            <div id="homeScreen" class="screen active">
+                <div class="hero">
+                    <div class="hero-icon">📸</div>
+                    <h2>Identify Any Cannabis Product</h2>
+                    <p>Take a photo of the packaging to see reviews and details</p>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="cameraBtn" class="btn btn-primary">
+                        <span class="btn-icon">📷</span>
+                        Take Photo
+                    </button>
+                    <button id="uploadBtn" class="btn btn-secondary">
+                        <span class="btn-icon">📁</span>
+                        Upload Image
+                    </button>
+                </div>
+
+                <input type="file" id="fileInput" accept="image/*" capture="environment" style="display: none;">
+            </div>
+
+            <!-- Camera Screen -->
+            <div id="cameraScreen" class="screen">
+                <div class="camera-container">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+
+                    <div class="camera-overlay">
+                        <div class="scan-frame"></div>
+                        <p class="camera-instruction">Position product label in frame</p>
+                    </div>
+
+                    <div class="camera-controls">
+                        <button id="captureBtn" class="btn btn-capture">
+                            <span class="capture-ring"></span>
+                        </button>
+                        <button id="cancelBtn" class="btn btn-cancel">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Screen -->
+            <div id="processingScreen" class="screen">
+                <div class="processing">
+                    <div class="spinner"></div>
+                    <h2>Analyzing Image...</h2>
+                    <p id="processingStatus">Extracting text from image</p>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div id="resultsScreen" class="screen">
+                <div id="resultsContent"></div>
+                <button id="searchAgainBtn" class="btn btn-secondary">
+                    <span class="btn-icon">🔍</span>
+                    Search Again
+                </button>
+            </div>
+
+            <!-- No Results Screen -->
+            <div id="noResultsScreen" class="screen">
+                <div class="no-results">
+                    <div class="hero-icon">😕</div>
+                    <h2>Product Not Found</h2>
+                    <p>We couldn't identify this product. Try taking another photo with better lighting and a clear view of the label.</p>
+                    <button id="retryBtn" class="btn btn-primary">
+                        <span class="btn-icon">🔄</span>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 KushSavvy. Use responsibly. 21+</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="products.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
