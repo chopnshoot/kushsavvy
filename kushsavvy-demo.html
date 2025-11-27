@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="KushSavvy - Identify cannabis products instantly by taking a photo">
+    <meta name="theme-color" content="#10b981">
+    <title>KushSavvy - Cannabis Product Identifier</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --secondary: #3b82f6;
+            --dark: #1f2937;
+            --dark-light: #374151;
+            --light: #f3f4f6;
+            --white: #ffffff;
+            --text: #1f2937;
+            --text-light: #6b7280;
+            --border: #e5e7eb;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            width: 100%;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .tagline {
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        .screen {
+            display: none;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            background: var(--white);
+            border-radius: 1.5rem;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 2rem;
+        }
+
+        .hero-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .hero h2 {
+            font-size: 1.75rem;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .hero p {
+            color: var(--text-light);
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        /* Buttons */
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            font-size: 1.125rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: var(--shadow);
+            width: 100%;
+        }
+
+        .btn-icon {
+            font-size: 1.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--white);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn-cancel {
+            background: var(--error);
+            color: var(--white);
+            margin-top: 1rem;
+        }
+
+        /* Camera */
+        .camera-container {
+            position: relative;
+            background: var(--dark);
+            border-radius: 1.5rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            display: block;
+            max-height: 70vh;
+            object-fit: cover;
+        }
+
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .scan-frame {
+            width: 80%;
+            max-width: 300px;
+            aspect-ratio: 1;
+            border: 3px solid var(--primary);
+            border-radius: 1rem;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .camera-instruction {
+            color: var(--white);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            margin-top: 2rem;
+            font-weight: 600;
+        }
+
+        .camera-controls {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .btn-capture {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--white);
+            border: 4px solid var(--primary);
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .capture-ring {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        .btn-capture:active .capture-ring {
+            transform: scale(0.9);
+        }
+
+        /* Processing */
+        .processing {
+            text-align: center;
+            background: var(--white);
+            border-radius: 1.5rem;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid var(--light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 2rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .processing h2 {
+            font-size: 1.5rem;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .processing p {
+            color: var(--text-light);
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--light);
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 1rem;
+            transition: width 0.3s;
+            width: 0%;
+        }
+
+        /* Results */
+        #resultsContent {
+            background: var(--white);
+            border-radius: 1.5rem;
+            padding: 2rem;
+            box-shadow: var(--shadow-lg);
+            margin-bottom: 1.5rem;
+        }
+
+        .product-header {
+            text-align: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 1.5rem;
+        }
+
+        .product-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 1rem;
+            margin: 0 auto 1rem;
+            display: block;
+            box-shadow: var(--shadow);
+        }
+
+        .product-name {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .product-brand {
+            font-size: 1.125rem;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
+        }
+
+        .product-type {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--white);
+            padding: 0.375rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .product-details {
+            margin-bottom: 2rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-label {
+            color: var(--text-light);
+            font-weight: 600;
+        }
+
+        .detail-value {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stars {
+            color: var(--warning);
+            font-size: 1.25rem;
+        }
+
+        .rating-value {
+            color: var(--dark);
+            font-weight: 700;
+        }
+
+        .product-description {
+            margin-bottom: 2rem;
+        }
+
+        .product-description h3,
+        .product-effects h3,
+        .product-flavors h3 {
+            font-size: 1.25rem;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .product-description p {
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .tag {
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .effect-tag {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .flavor-tag {
+            background: #fce7f3;
+            color: #9f1239;
+        }
+
+        .reviews-section h3 {
+            font-size: 1.25rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+
+        .review {
+            background: var(--light);
+            border-radius: 1rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .reviewer-name {
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .review-date {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+
+        .review-text {
+            color: var(--text);
+            line-height: 1.5;
+        }
+
+        /* No Results */
+        .no-results {
+            text-align: center;
+            background: var(--white);
+            border-radius: 1.5rem;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .no-results h2 {
+            font-size: 1.75rem;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+        }
+
+        .no-results p {
+            color: var(--text-light);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        .footer {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 1rem 0;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 0.875rem;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Responsive Design */
+        @media (min-width: 768px) {
+            .action-buttons {
+                flex-direction: row;
+            }
+
+            .logo {
+                font-size: 2rem;
+            }
+
+            .hero h2 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.125rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">🌿 KushSavvy</h1>
+            <p class="tagline">Shazam for Cannabis Products</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Home Screen -->
+            <div id="homeScreen" class="screen active">
+                <div class="hero">
+                    <div class="hero-icon">📸</div>
+                    <h2>Identify Any Cannabis Product</h2>
+                    <p>Take a photo of the packaging to see reviews and details</p>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="cameraBtn" class="btn btn-primary">
+                        <span class="btn-icon">📷</span>
+                        Take Photo
+                    </button>
+                    <button id="uploadBtn" class="btn btn-secondary">
+                        <span class="btn-icon">📁</span>
+                        Upload Image
+                    </button>
+                </div>
+
+                <input type="file" id="fileInput" accept="image/*" capture="environment" style="display: none;">
+            </div>
+
+            <!-- Camera Screen -->
+            <div id="cameraScreen" class="screen">
+                <div class="camera-container">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas" style="display: none;"></canvas>
+
+                    <div class="camera-overlay">
+                        <div class="scan-frame"></div>
+                        <p class="camera-instruction">Position product label in frame</p>
+                    </div>
+
+                    <div class="camera-controls">
+                        <button id="captureBtn" class="btn btn-capture">
+                            <span class="capture-ring"></span>
+                        </button>
+                        <button id="cancelBtn" class="btn btn-cancel">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Processing Screen -->
+            <div id="processingScreen" class="screen">
+                <div class="processing">
+                    <div class="spinner"></div>
+                    <h2>Analyzing Image...</h2>
+                    <p id="processingStatus">Extracting text from image</p>
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Screen -->
+            <div id="resultsScreen" class="screen">
+                <div id="resultsContent"></div>
+                <button id="searchAgainBtn" class="btn btn-secondary">
+                    <span class="btn-icon">🔍</span>
+                    Search Again
+                </button>
+            </div>
+
+            <!-- No Results Screen -->
+            <div id="noResultsScreen" class="screen">
+                <div class="no-results">
+                    <div class="hero-icon">😕</div>
+                    <h2>Product Not Found</h2>
+                    <p>We couldn't identify this product. Try taking another photo with better lighting and a clear view of the label.</p>
+                    <button id="retryBtn" class="btn btn-primary">
+                        <span class="btn-icon">🔄</span>
+                        Try Again
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 KushSavvy. Use responsibly. 21+</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script>
+        // Products Database
+        const productsDatabase = [
+            {
+                id: 1,
+                name: "Blue Dream",
+                brand: "Premium Farms",
+                type: "Hybrid",
+                thc: "18-24%",
+                cbd: "0.1-0.3%",
+                price: "$45",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%234299e1' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='80' fill='white'%3E🌿%3C/text%3E%3C/svg%3E",
+                description: "Blue Dream is a sativa-dominant hybrid that combines the genetics of Blueberry and Haze. Known for its balanced effects and sweet berry aroma, it's perfect for both daytime and evening use.",
+                effects: ["Relaxed", "Happy", "Uplifted", "Creative"],
+                flavors: ["Berry", "Sweet", "Herbal"],
+                rating: 4.5,
+                reviewCount: 1247,
+                reviews: [
+                    {
+                        author: "Sarah M.",
+                        date: "2025-11-15",
+                        rating: 5,
+                        text: "Absolutely love this strain! Perfect balance between relaxation and focus. Great for creative work."
+                    },
+                    {
+                        author: "Mike T.",
+                        date: "2025-11-10",
+                        rating: 4,
+                        text: "Solid strain with nice berry flavor. Effects are smooth and long-lasting."
+                    }
+                ],
+                keywords: ["blue dream", "premium farms", "hybrid", "blueberry"]
+            },
+            {
+                id: 2,
+                name: "OG Kush",
+                brand: "West Coast Collective",
+                type: "Hybrid",
+                thc: "20-26%",
+                cbd: "0.2%",
+                price: "$50",
+                image: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect fill='%2338a169' width='200' height='200'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='80' fill='white'%3E👑%3C/text%3E%3C/svg%3E",
+                description: "OG Kush is a legendary strain with a complex aroma of fuel, skunk, and spice. This hybrid provides a strong euphoric high combined with deep relaxation.",
+                effects: ["Euphoric", "Relaxed", "Happy", "Uplifted"],
+                flavors: ["Earthy", "Pine", "Woody"],
+                rating: 4.7,
+                reviewCount: 2104,
+                reviews: [
+                    {
+                        author: "Jennifer L.",
+                        date: "2025-11-19",
+                        rating: 5,
+                        text: "The original and still the best. Perfect balance of effects."
+                    },
+                    {
+                        author: "Mark D.",
+                        date: "2025-11-16",
+                        rating: 5,
+                        text: "Classic for a reason. Never fails to deliver quality effects."
+                    }
+                ],
+                keywords: ["og kush", "west coast", "hybrid", "kush", "original gangster"]
+            }
+        ];
+
+        // Search function
+        function searchProducts(query) {
+            if (!query || query.trim().length < 2) {
+                return [];
+            }
+
+            query = query.toLowerCase().trim();
+            const words = query.split(/\s+/);
+
+            const scoredProducts = productsDatabase.map(product => {
+                let score = 0;
+
+                product.keywords.forEach(keyword => {
+                    if (keyword.includes(query)) {
+                        score += 10;
+                    }
+                    words.forEach(word => {
+                        if (keyword.includes(word)) {
+                            score += 5;
+                        }
+                    });
+                });
+
+                if (product.name.toLowerCase().includes(query)) {
+                    score += 15;
+                }
+                words.forEach(word => {
+                    if (product.name.toLowerCase().includes(word)) {
+                        score += 7;
+                    }
+                });
+
+                if (product.brand.toLowerCase().includes(query)) {
+                    score += 12;
+                }
+
+                return { product, score };
+            });
+
+            const results = scoredProducts
+                .filter(item => item.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .map(item => item.product);
+
+            return results;
+        }
+
+        // App State
+        let currentStream = null;
+
+        // DOM Elements
+        const screens = {
+            home: document.getElementById('homeScreen'),
+            camera: document.getElementById('cameraScreen'),
+            processing: document.getElementById('processingScreen'),
+            results: document.getElementById('resultsScreen'),
+            noResults: document.getElementById('noResultsScreen')
+        };
+
+        const elements = {
+            cameraBtn: document.getElementById('cameraBtn'),
+            uploadBtn: document.getElementById('uploadBtn'),
+            fileInput: document.getElementById('fileInput'),
+            video: document.getElementById('video'),
+            canvas: document.getElementById('canvas'),
+            captureBtn: document.getElementById('captureBtn'),
+            cancelBtn: document.getElementById('cancelBtn'),
+            processingStatus: document.getElementById('processingStatus'),
+            progressFill: document.getElementById('progressFill'),
+            resultsContent: document.getElementById('resultsContent'),
+            searchAgainBtn: document.getElementById('searchAgainBtn'),
+            retryBtn: document.getElementById('retryBtn')
+        };
+
+        // Screen Management
+        function showScreen(screenName) {
+            Object.values(screens).forEach(screen => screen.classList.remove('active'));
+            screens[screenName].classList.add('active');
+        }
+
+        // Camera Functions
+        async function startCamera() {
+            try {
+                const constraints = {
+                    video: {
+                        facingMode: 'environment',
+                        width: { ideal: 1920 },
+                        height: { ideal: 1080 }
+                    }
+                };
+
+                currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+                elements.video.srcObject = currentStream;
+                showScreen('camera');
+            } catch (error) {
+                console.error('Camera access error:', error);
+                alert('Unable to access camera. Please ensure camera permissions are granted or try uploading an image instead.');
+            }
+        }
+
+        function stopCamera() {
+            if (currentStream) {
+                currentStream.getTracks().forEach(track => track.stop());
+                currentStream = null;
+            }
+        }
+
+        function captureImage() {
+            const canvas = elements.canvas;
+            const video = elements.video;
+
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            stopCamera();
+
+            canvas.toBlob(processImage, 'image/jpeg', 0.9);
+        }
+
+        // Image Processing
+        async function processImage(imageBlob) {
+            showScreen('processing');
+            updateProgress(0, 'Preparing image...');
+
+            try {
+                const imageUrl = URL.createObjectURL(imageBlob);
+
+                updateProgress(20, 'Extracting text from image...');
+                const text = await extractText(imageUrl);
+
+                updateProgress(60, 'Searching for product...');
+                console.log('Extracted text:', text);
+
+                const products = searchProducts(text);
+
+                updateProgress(100, 'Complete!');
+
+                URL.revokeObjectURL(imageUrl);
+
+                setTimeout(() => {
+                    if (products.length > 0) {
+                        displayResults(products[0]);
+                    } else {
+                        showScreen('noResults');
+                    }
+                }, 500);
+
+            } catch (error) {
+                console.error('Processing error:', error);
+                alert('Error processing image. Please try again.');
+                showScreen('home');
+            }
+        }
+
+        async function extractText(imageUrl) {
+            try {
+                const worker = await Tesseract.createWorker('eng');
+
+                const { data } = await worker.recognize(imageUrl, {
+                    logger: (m) => {
+                        if (m.status === 'recognizing text') {
+                            const progress = 20 + (m.progress * 40);
+                            updateProgress(progress, 'Extracting text from image...');
+                        }
+                    }
+                });
+
+                await worker.terminate();
+
+                return data.text;
+            } catch (error) {
+                console.error('OCR error:', error);
+                throw new Error('Failed to extract text from image');
+            }
+        }
+
+        // Progress Updates
+        function updateProgress(percent, status) {
+            elements.progressFill.style.width = `${percent}%`;
+            elements.processingStatus.textContent = status;
+        }
+
+        // Display Results
+        function displayResults(product) {
+            const stars = '⭐'.repeat(Math.floor(product.rating));
+            const halfStar = product.rating % 1 >= 0.5 ? '½' : '';
+
+            const html = `
+                <div class="product-header">
+                    <img src="${product.image}" alt="${product.name}" class="product-image">
+                    <h2 class="product-name">${product.name}</h2>
+                    <p class="product-brand">${product.brand}</p>
+                    <span class="product-type">${product.type}</span>
+                </div>
+
+                <div class="product-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Rating</span>
+                        <div class="rating">
+                            <span class="stars">${stars}${halfStar}</span>
+                            <span class="rating-value">${product.rating}/5</span>
+                            <span class="detail-label">(${product.reviewCount} reviews)</span>
+                        </div>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">THC</span>
+                        <span class="detail-value">${product.thc}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">CBD</span>
+                        <span class="detail-value">${product.cbd}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Price</span>
+                        <span class="detail-value">${product.price}</span>
+                    </div>
+                </div>
+
+                <div class="product-description">
+                    <h3>Description</h3>
+                    <p>${product.description}</p>
+                </div>
+
+                <div class="product-effects">
+                    <h3>Effects</h3>
+                    <div class="tags">
+                        ${product.effects.map(effect => `<span class="tag effect-tag">${effect}</span>`).join('')}
+                    </div>
+                </div>
+
+                <div class="product-flavors">
+                    <h3>Flavors</h3>
+                    <div class="tags">
+                        ${product.flavors.map(flavor => `<span class="tag flavor-tag">${flavor}</span>`).join('')}
+                    </div>
+                </div>
+
+                <div class="reviews-section">
+                    <h3>Recent Reviews</h3>
+                    ${product.reviews.map(review => `
+                        <div class="review">
+                            <div class="review-header">
+                                <span class="reviewer-name">${review.author}</span>
+                                <div class="rating">
+                                    <span class="stars">${'⭐'.repeat(review.rating)}</span>
+                                </div>
+                            </div>
+                            <p class="review-date">${formatDate(review.date)}</p>
+                            <p class="review-text">${review.text}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+
+            elements.resultsContent.innerHTML = html;
+            showScreen('results');
+        }
+
+        // Helper Functions
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Event Listeners
+        elements.cameraBtn.addEventListener('click', startCamera);
+        elements.uploadBtn.addEventListener('click', () => elements.fileInput.click());
+        elements.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processImage(file);
+            }
+        });
+        elements.captureBtn.addEventListener('click', captureImage);
+        elements.cancelBtn.addEventListener('click', () => {
+            stopCamera();
+            showScreen('home');
+        });
+        elements.searchAgainBtn.addEventListener('click', () => showScreen('home'));
+        elements.retryBtn.addEventListener('click', () => showScreen('home'));
+
+        console.log('KushSavvy App Initialized');
+        console.log(`Loaded ${productsDatabase.length} products`);
+    </script>
+</body>
+</html>
